@@ -139,9 +139,9 @@ describe('Selection', () => {
 
     hot.selectCell(1, 1, 2, 2);
 
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
       .toBe('10');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
       .toBe('8');
   });
 
@@ -589,90 +589,6 @@ describe('Selection', () => {
     cellVerticalPosition = hot.getCell(1, 0).offsetTop;
     topBorder = $('.wtBorder.current')[0];
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-  });
-
-  it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', () => {
-    const hot = handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      hiddenColumns: {
-        columns: [0, 1, 2]
-      }
-    });
-
-    selectCell(0, 15);
-
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
-  });
-
-  it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', () => {
-    const hot = handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      hiddenColumns: {
-        columns: [0, 1, 2]
-      }
-    });
-
-    selectCells([[0, 4], [0, 15]]);
-
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
-  });
-
-  it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', () => {
-    const hot = handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      hiddenColumns: {
-        columns: [0, 1, 2]
-      }
-    });
-
-    selectColumns(15);
-
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
-  });
-
-  it('selection should move down throughout the table when the last row is hidden', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
-      autoWrapCol: true,
-      autoWrapRow: true,
-      hiddenRows: {
-        rows: [2]
-      }
-    });
-
-    selectCell(0, 0); // Select cell "A1"
-
-    keyDownUp('arrowdown'); // Move selection down to the end of the table
-    keyDownUp('arrowdown'); // Move selection to the next column, to the cell "B1"
-
-    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
-  });
-
-  it('selection should move to the right throughout the table when the last column is hidden', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
-      autoWrapCol: true,
-      autoWrapRow: true,
-      hiddenColumns: {
-        columns: [2]
-      }
-    });
-
-    selectCell(0, 0); // Select cell "A1"
-
-    keyDownUp('arrowright'); // Move selection to the right edge of the table
-    keyDownUp('arrowright'); // Move selection to first column, to the cell "A2"
-
-    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   it('should keep viewport when removing last column', () => {
@@ -1830,5 +1746,46 @@ describe('Selection', () => {
 
     hot2.destroy();
     container2.remove();
+  });
+
+  describe('running in iframe', () => {
+    beforeEach(function() {
+      this.$iframe = $('<iframe width="300px" height="300px"/>').appendTo(this.$container);
+
+      const doc = this.$iframe[0].contentDocument;
+
+      doc.open('text/html', 'replace');
+      doc.write(`
+        <!doctype html>
+        <head>
+          <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
+        </head>`);
+      doc.close();
+
+      this.$iframeContainer = $('<div/>').appendTo(doc.body);
+    });
+
+    afterEach(function() {
+      this.$iframeContainer.handsontable('destroy');
+      this.$iframe.remove();
+    });
+
+    it('should add `current` css class to selected cell', () => {
+      const iframeHot = spec().$iframeContainer.handsontable().handsontable('getInstance');
+
+      iframeHot.selectCell(1, 1);
+
+      expect(iframeHot.getCell(1, 1).classList.contains('current')).toBeTrue();
+    });
+
+    it('should set correct `wtBorder` top position of selected cell', async() => {
+      const iframeHot = spec().$iframeContainer.handsontable().handsontable('getInstance');
+
+      iframeHot.selectCell(1, 1);
+
+      await sleep(100);
+
+      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).toEqual('23px');
+    });
   });
 });

@@ -6,27 +6,27 @@
   font-size: 13px;
   color #222222;
 
-  * { 
+  *:not(a) { 
     outline: blue solid 0 !important
   }
-  *:focus-visible {
+
+  *:not(a):focus-visible {
     outline: blue solid 0 !important
   }
 
   img {
     border-radius: 0 !important
   }
-  .handsontable a {
-      color: #104acc !important
+
+  .handsontable tr {
+    background: none;
   }
-  .ht_master .wtHider { 
-    background: #ffffff;
+  
+  .htFocusCatcher {
+    border: 0 !important;
   }
 }
 
-.htCommentsContainer .htCommentTextArea {
-  color #222222;
-}
 table.htCore {
     display: table;
 }

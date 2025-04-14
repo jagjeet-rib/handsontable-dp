@@ -207,10 +207,14 @@ class DataSource {
       }
     }
 
+    if (['__proto__', 'constructor', 'prototype'].includes(row)) {
+      // prevent prototype pollution
+      return;
+    }
+
     if (!Number.isInteger(column)) {
       // column argument is the prop name
       setProperty(this.data[row], column, value);
-
     } else {
       this.data[row][column] = value;
     }

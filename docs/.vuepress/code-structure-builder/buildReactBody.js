@@ -1,4 +1,4 @@
-const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox, lang }) => {
+const buildReactBody = ({ js, css, version, hyperformulaVersion, themeName, preset, sandbox, lang }) => {
   const addReduxDependencies = preset.includes('redux')
     ? `
     "redux": "^4.0.0",
@@ -49,7 +49,7 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"${lang === 'tsx' ? `,
+    "@handsontable/react-wrapper": "${version}"${lang === 'tsx' ? `,
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "typescript": "5.5.2"` : ''
@@ -85,7 +85,7 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
 
   <body>
     <noscript> You need to enable JavaScript to run this app. </noscript>
-    <div id="root"></div>
+    <div id="root" class="${themeName}"></div>
   </body>
 </html>
 `
@@ -133,7 +133,7 @@ ${js}`
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"${lang === 'tsx' ? `,
+    "@handsontable/react-wrapper": "${version}"${lang === 'tsx' ? `,
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "typescript": "5.5.2"` : ''
@@ -170,7 +170,7 @@ ${js}`
 
   <body>
     <noscript> You need to enable JavaScript to run this app. </noscript>
-    <div id="root"></div>
+    <div id="root" class="${themeName}"></div>
   </body>
 </html>
 `

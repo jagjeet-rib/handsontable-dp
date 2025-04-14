@@ -31,7 +31,8 @@ npm install handsontable @handsontable/angular
 Import the Handsontable styles to your project.
 
 ```scss
-@import '~handsontable/dist/handsontable.full.css';
+@import '~handsontable/styles/handsontable.min.css';
+@import '~handsontable/styles/ht-theme-main.min.css';
 ```
 
 Import the Handsontable component in your module.
@@ -70,13 +71,15 @@ You can reduce the size of your bundle by importing and registering only the
 Now, you can use the Handsontable component in your HTML files.
 
 ```html
-<hot-table
-  [colHeaders]="true"
-  [rowHeaders]="true"
-  autoWrapRow={true}
-  autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation">
-</hot-table>
+<div class="ht-theme-main-dark-auto">
+  <hot-table
+    [colHeaders]="true"
+    [rowHeaders]="true"
+    autoWrapRow={true}
+    autoWrapCol={true}
+    licenseKey="non-commercial-and-evaluation">
+  </hot-table>
+</div>
 ```
 
 ## Related API reference

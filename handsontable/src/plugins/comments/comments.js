@@ -1,12 +1,16 @@
 import {
   addClass,
   closest,
-  isChildOf,
+  getScrollbarWidth,
   hasClass,
-  outerHeight
+  hasVerticalScrollbar,
+  hasHorizontalScrollbar,
+  isChildOf,
+  outerHeight,
+  removeClass,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { deepClone, deepExtend, isObject } from '../../helpers/object';
+import { deepClone, deepExtend } from '../../helpers/object';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
@@ -14,8 +18,6 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
-
-import './comments.scss';
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
@@ -125,6 +127,12 @@ export class Comments extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      displayDelay: 250,
+    };
+  }
+
   /**
    * Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
    *
@@ -199,7 +207,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#displaySwitch) {
-      this.#displaySwitch = new DisplaySwitch(this.getDisplayDelaySetting());
+      this.#displaySwitch = new DisplaySwitch(this.getSetting('displayDelay'));
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
@@ -208,6 +216,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
+    this.addHook('afterSetTheme', (...args) => this.#updateEditorThemeClassName(...args));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -224,7 +233,7 @@ export class Comments extends BasePlugin {
    *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin() {
-    this.#displaySwitch.updateDelay(this.getDisplayDelaySetting());
+    this.#displaySwitch.updateDelay(this.getSetting('displayDelay'));
     super.updatePlugin();
   }
 
@@ -264,7 +273,7 @@ export class Comments extends BasePlugin {
         });
       },
       stopPropagation: true,
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.#editor.isVisible(),
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell(),
       group: SHORTCUTS_GROUP,
     });
 
@@ -286,6 +295,17 @@ export class Comments extends BasePlugin {
         manager.setActiveContextName('grid');
       },
       runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      forwardToContext: manager.getContext('grid'),
+      callback: () => {
+        this.#editor.setValue(this.#editor.getValue());
+        this.hide();
+        manager.setActiveContextName('grid');
+      },
       group: SHORTCUTS_GROUP,
     });
   }
@@ -315,6 +335,12 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+
+    this.eventManager.addEventListener(
+      this.getEditorInputElement(),
+      'mousedown',
+      event => this.#onInputElementMouseDown(event)
+    );
   }
 
   /**
@@ -552,7 +578,7 @@ export class Comments extends BasePlugin {
       this.#editor.resetSize();
     }
 
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getColumnWidth(renderableColumn);
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
 
     const {
@@ -568,6 +594,9 @@ export class Comments extends BasePlugin {
 
     const { innerWidth, innerHeight } = this.hot.rootWindow;
     const documentElement = this.hot.rootDocument.documentElement;
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    const verticalScrollbarWidth = hasVerticalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
+    const horizontalScrollbarWidth = hasHorizontalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     let x = left + rootWindow.scrollX + lastColWidth;
     let y = top + rootWindow.scrollY + lastRowHeight;
 
@@ -576,14 +605,14 @@ export class Comments extends BasePlugin {
     }
 
     // flip to the right or left the comments editor position when it goes out of browser viewport
-    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth - verticalScrollbarWidth) {
       x = left + rootWindow.scrollX - editorWidth - 1;
 
     } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
       x = left + rootWindow.scrollX + lastColWidth + 1;
     }
 
-    if (top + editorHeight > innerHeight) {
+    if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
       y -= (editorHeight - cellHeight + 1);
     }
 
@@ -661,6 +690,15 @@ export class Comments extends BasePlugin {
         this.hide();
       }
     }
+  }
+
+  /**
+   * Prevent recognizing clicking on the comment editor as clicking outside of table.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   */
+  #onInputElementMouseDown(event) {
+    event.stopPropagation();
   }
 
   /**
@@ -746,7 +784,7 @@ export class Comments extends BasePlugin {
    * @param {Event} event The keydown event.
    */
   #onAfterDocumentKeyDown(event) {
-    if (this.#editor.isVisible()) {
+    if (this.#editor.isFocused()) {
       stopImmediatePropagation(event);
     }
   }
@@ -758,6 +796,16 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
+  }
+
+  /**
+   * Updates the editor theme class name.
+   */
+  #updateEditorThemeClassName() {
+    const editorElement = this.#editor.getEditorElement();
+
+    removeClass(editorElement, /ht-theme-.*/g);
+    addClass(editorElement, this.hot.getCurrentThemeName());
   }
 
   /**
@@ -773,20 +821,6 @@ export class Comments extends BasePlugin {
       removeCommentItem(this),
       readOnlyCommentItem(this),
     );
-  }
-
-  /**
-   * Get `displayDelay` setting of comment plugin.
-   *
-   * @private
-   * @returns {number|undefined}
-   */
-  getDisplayDelaySetting() {
-    const commentSetting = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (isObject(commentSetting)) {
-      return commentSetting.displayDelay;
-    }
   }
 
   /**

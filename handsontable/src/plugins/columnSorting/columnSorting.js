@@ -10,7 +10,7 @@ import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import {
@@ -19,7 +19,8 @@ import {
   areValidSortStates,
   getHeaderSpanElement,
   isFirstLevelColumnHeader,
-  wasHeaderClickedProperly
+  wasHeaderClickedProperly,
+  warnAboutPluginsConflict,
 } from './utils';
 import {
   getClassesToRemove,
@@ -28,8 +29,6 @@ import {
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 import { A11Y_SORT } from '../../helpers/a11y';
-
-import './columnSorting.scss';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
@@ -41,6 +40,13 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
+
+/**
+ * Tracks the conflicts between `columnSorting` and `multiColumnSorting` options.
+ * Only one plugin can be enabled for Handsontable instance. Once one of them is enabled,
+ * the other should remain disabled even if it's set to `true`.
+ */
+const pluginConflictsState = new WeakMap();
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 /**
@@ -144,12 +150,25 @@ export class ColumnSorting extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    if (
+      pluginConflictsState.has(this.hot) &&
+      pluginConflictsState.get(this.hot) !== this.pluginKey
+    ) {
+      this.hot.updateSettings({
+        [this.pluginKey]: false
+      });
+      warnAboutPluginsConflict(pluginConflictsState.get(this.hot), this.pluginKey);
+
+      return;
+    }
+
     if (this.enabled) {
       return;
     }
 
-    this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
+    pluginConflictsState.set(this.hot, this.pluginKey);
 
+    this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
     this.columnMetaCache = new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
 
@@ -189,6 +208,8 @@ export class ColumnSorting extends BasePlugin {
 
       this.updateHeaderClasses(headerSpanElement);
     };
+
+    pluginConflictsState.delete(this.hot);
 
     // Changing header width and removing indicator.
     this.hot.addHook('afterGetColHeader', clearColHeader);
@@ -762,7 +783,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} newSettings New settings object.
    */
   onUpdateSettings(newSettings) {
-    super.onUpdateSettings();
+    super.onUpdateSettings(newSettings);
 
     if (this.columnMetaCache !== null) {
       // Column meta cache base on settings, thus we should re-init the map.
@@ -842,7 +863,21 @@ export class ColumnSorting extends BasePlugin {
         this.hot.selectColumns(coords.col);
       }
 
-      this.sort(this.getColumnNextConfig(coords.col));
+      const activeEditor = this.hot.getActiveEditor();
+      const nextConfig = this.getColumnNextConfig(coords.col);
+
+      if (
+        activeEditor?.isOpened() &&
+        this.hot.getCellValidator(activeEditor.row, activeEditor.col)
+      ) {
+        // Postpone sorting until the cell's value is validated and saved.
+        this.hot.addHookOnce('postAfterValidate', () => {
+          this.sort(nextConfig);
+        });
+
+      } else {
+        this.sort(nextConfig);
+      }
     }
   }
 

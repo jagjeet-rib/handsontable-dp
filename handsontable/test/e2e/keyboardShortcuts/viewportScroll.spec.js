@@ -38,7 +38,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       const scrollPosition = getCurrentScrollPosition();
 
-      expect(scrollPosition).toEqual({ x: 45, y: 15 });
+      expect(scrollPosition).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 45, y: 15 });
+        main.toEqual({ x: 57, y: 93 });
+        horizon.toEqual({ x: 121, y: 197 });
+      });
 
       keyDownUp(['control/meta', 'backspace']);
 
@@ -113,7 +117,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       const scrollPosition = getCurrentScrollPosition();
 
-      expect(scrollPosition).toEqual({ x: 45, y: 0 });
+      expect(scrollPosition).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 45, y: 0 });
+        main.toEqual({ x: 57, y: 0 });
+        horizon.toEqual({ x: 121, y: 0 });
+      });
 
       keyDownUp(['control/meta', 'backspace']);
 
@@ -139,7 +147,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 0, y: 1932 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 0, y: 1932 });
+        main.toEqual({ x: 0, y: 2494 });
+        horizon.toEqual({ x: 0, y: 3219 });
+      });
     });
 
     it('should scroll the viewport right to the focused cell', async() => {
@@ -161,7 +173,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 1850, y: 0 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 1850, y: 0 });
+        main.toEqual({ x: 2001, y: 0 });
+        horizon.toEqual({ x: 2292, y: 0 });
+      });
     });
 
     it('should scroll the viewport left to the focused cell', async() => {
@@ -183,7 +199,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 350, y: 0 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 350, y: 0 });
+        main.toEqual({ x: 412, y: 0 });
+        horizon.toEqual({ x: 476, y: 0 });
+      });
     });
 
     it('should scroll the viewport up to the focused cell', async() => {
@@ -205,7 +225,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 0, y: 92 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 0, y: 92 });
+        main.toEqual({ x: 0, y: 174 });
+        horizon.toEqual({ x: 0, y: 259 });
+      });
     });
 
     it('should scroll the viewport to the focused cell by positioning the viewport in the center of the cell', async() => {
@@ -227,7 +251,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 1100, y: 1012 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 1100, y: 1012 });
+        main.toEqual({ x: 1132, y: 1334 });
+        horizon.toEqual({ x: 1303, y: 1739 });
+      });
     });
 
     it('should scroll the viewport horizontally only when the column header is focused', async() => {
@@ -252,7 +280,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 1100, y: 1836 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 1100, y: 1836 });
+        main.toEqual({ x: 1187, y: 2385 });
+        horizon.toEqual({ x: 1366, y: 3121 });
+      });
     });
 
     it('should scroll the viewport horizontally when the column header is focused and all rows are trimmed', async() => {
@@ -321,8 +353,13 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(getCurrentScrollPosition()).toEqual({ x: 1747, y: 1035 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
+        classic.toEqual({ x: 1747, y: 1035 });
+
+        main.toEqual({ x: 1942, y: 1334 });
+        horizon.toEqual({ x: 2265, y: 1739 });
+      });
     });
 
     it('should scroll the viewport vertically when the row header is focused and all columns are trimmed', async() => {
@@ -344,7 +381,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 0, y: 1035 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 0, y: 1035 });
+        main.toEqual({ x: 0, y: 1334 });
+        horizon.toEqual({ x: 0, y: 1739 });
+      });
     });
 
     it('should scroll the viewport vertically when the row header is focused and all columns are hidden', async() => {
@@ -366,7 +407,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 0, y: 1035 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 0, y: 1035 });
+        main.toEqual({ x: 0, y: 1334 });
+        horizon.toEqual({ x: 0, y: 1739 });
+      });
     });
 
     it('should not scroll the viewport when corner is focused', async() => {
@@ -389,12 +434,21 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       await sleep(100);
 
-      // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(getCurrentScrollPosition()).toEqual({ x: 996, y: 916 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
+        classic.toEqual({ x: 996, y: 916 });
+
+        main.toEqual({ x: 1035, y: 1225 });
+        horizon.toEqual({ x: 1238, y: 1641 });
+      });
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 996, y: 916 });
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 996, y: 916 });
+        main.toEqual({ x: 1035, y: 1225 });
+        horizon.toEqual({ x: 1238, y: 1641 });
+      });
     });
   });
 });

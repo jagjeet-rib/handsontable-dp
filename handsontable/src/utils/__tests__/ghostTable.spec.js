@@ -54,7 +54,11 @@ describe('GhostTable', () => {
       gt.addRow(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).toEqual(['handsontable']);
+      expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(['ht-wrapper handsontable']);
+        main.toEqual(['ht-wrapper handsontable ht-theme-main']);
+        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
+      });
     });
 
     it('should add row to rows collection after call `addRow` method', () => {
@@ -115,11 +119,23 @@ describe('GhostTable', () => {
 
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(heightSpy.calls.argsFor(0)[1]).toBe(23);
+      expect(heightSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(23);
+        main.toBe(29);
+        horizon.toBe(37);
+      });
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(heightSpy.calls.argsFor(1)[1]).toBe(64);
+      expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(64);
+        main.toBe(69);
+        horizon.toBe(77);
+      });
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(heightSpy.calls.argsFor(2)[1]).toBe(43);
+      expect(heightSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(43);
+        main.toBe(49);
+        horizon.toBe(57);
+      });
     });
   });
 
@@ -157,7 +173,11 @@ describe('GhostTable', () => {
       gt.addColumn(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).toEqual(['handsontable']);
+      expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(['ht-wrapper handsontable']);
+        main.toEqual(['ht-wrapper handsontable ht-theme-main']);
+        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
+      });
     });
 
     it('should add column to columns collection after call `addColumn` method', () => {
@@ -220,11 +240,23 @@ describe('GhostTable', () => {
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBe(66);
+      expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(66);
+        main.toBe(84);
+        horizon.toBe(92);
+      });
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBe(31);
+      expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(31);
+        main.toBe(43);
+        horizon.toBe(51);
+      });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).toBe(53);
+      expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(53);
+        main.toBe(68);
+        horizon.toBe(76);
+      });
     });
 
     it('should get rounded up widths when the browser calculates the columns as a decimal values', () => {

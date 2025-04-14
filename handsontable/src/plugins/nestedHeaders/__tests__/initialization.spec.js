@@ -46,7 +46,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -93,7 +93,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -154,7 +154,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -211,7 +211,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -257,7 +257,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -331,7 +331,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -362,9 +362,17 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. ' +
                                            'This kind of configuration is currently not supported.');
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead></thead>
-        <tbody>
+        <thead>
           <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -374,9 +382,17 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
       expect(extractDOMStructure(getMaster(), getMaster())).toMatchHTML(`
-        <thead></thead>
-        <tbody>
+        <thead>
           <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -407,10 +423,21 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith(expectedWarn);
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
-          <tr></tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -432,10 +459,21 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith(expectedWarn);
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
-          <tr></tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -457,10 +495,21 @@ describe('NestedHeaders', () => {
       expect(warnSpy).toHaveBeenCalledWith(expectedWarn);
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
-          <tr></tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -496,7 +545,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>

@@ -74,6 +74,20 @@ describe('Focus Manager', () => {
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });
 
+    it('should update value in editor textarea when `imeFastEdit` is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        imeFastEdit: true,
+      });
+
+      selectCell(0, 0);
+
+      await sleep(10);
+
+      expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
+      expect(getActiveEditor().TEXTAREA.value).toEqual('A1');
+    });
+
     it('should be able to get and set the current `focusMode` with appropriate API options', () => {
       handsontable({});
 
@@ -125,6 +139,31 @@ describe('Focus Manager', () => {
       getFocusManager().focusOnHighlightedCell(getCell(1, 1, true));
 
       expect(document.activeElement).toEqual(getCell(1, 1, true));
+    });
+  });
+
+  describe('`refocusToEditorTextarea` method', () => {
+    it('should focus the current editor element valid for the time when it is focused (#dev-2094)', async() => {
+      handsontable({
+        columns: [
+          { type: 'text' },
+          { type: 'numeric' },
+        ],
+        imeFastEdit: true,
+      });
+
+      getFocusManager().setRefocusDelay(50);
+      selectCell(0, 0);
+
+      await sleep(100);
+
+      expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
+
+      selectCell(0, 1);
+
+      await sleep(100);
+
+      expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });
   });
 });

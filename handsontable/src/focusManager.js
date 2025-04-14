@@ -1,5 +1,5 @@
 import { warn } from './helpers/console';
-import { isOutsideInput } from './helpers/dom/element';
+import { isHTMLElement, isOutsideInput } from './helpers/dom/element';
 import { debounce } from './helpers/function';
 
 /**
@@ -127,10 +127,9 @@ export class FocusManager {
   getRefocusElement() {
     if (typeof this.#refocusElementGetter === 'function') {
       return this.#refocusElementGetter();
-
-    } else {
-      return this.#hot.getActiveEditor()?.TEXTAREA;
     }
+
+    return this.#hot.getActiveEditor()?.TEXTAREA;
   }
 
   /**
@@ -150,7 +149,7 @@ export class FocusManager {
         'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element
       );
 
-      if (!(elementToBeFocused instanceof HTMLElement)) {
+      if (!isHTMLElement(elementToBeFocused)) {
         elementToBeFocused = element;
       }
 
@@ -178,17 +177,16 @@ export class FocusManager {
    * @param {number} [delay] Delay in milliseconds.
    */
   refocusToEditorTextarea(delay = this.#refocusDelay) {
-    const refocusElement = this.getRefocusElement();
-
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
       this.#hot.getSettings().imeFastEdit &&
-      !this.#hot.getActiveEditor()?.isOpened() &&
-      !!refocusElement
+      !this.#hot.getActiveEditor()?.isOpened()
     ) {
+      this.#hot.getActiveEditor()?.refreshValue?.();
+
       if (!this.#debouncedSelect.has(delay)) {
         this.#debouncedSelect.set(delay, debounce(() => {
-          refocusElement.select();
+          this.getRefocusElement()?.select();
         }, delay));
       }
 
@@ -248,7 +246,7 @@ export class FocusManager {
     this.#getSelectedCell((selectedCell) => {
       if (
         this.getFocusMode() === FOCUS_MODES.MIXED &&
-        selectedCell.nodeName === 'TD'
+        selectedCell?.nodeName === 'TD'
       ) {
         this.refocusToEditorTextarea();
       }

@@ -1,22 +1,24 @@
 describe('DropdownMenu (RTL mode)', () => {
+  beforeEach(function() {
+    $('html').attr('dir', 'rtl');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+  });
+
+  afterEach(function() {
+    $('html').attr('dir', 'ltr');
+
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
   using('configuration object', [
     { htmlDir: 'rtl', layoutDirection: 'inherit' },
     { htmlDir: 'ltr', layoutDirection: 'rtl' },
   ], ({ htmlDir, layoutDirection }) => {
-    const id = 'testContainer';
-
-    beforeEach(function() {
+    beforeEach(() => {
       $('html').attr('dir', htmlDir);
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    });
-
-    afterEach(function() {
-      $('html').attr('dir', 'ltr');
-
-      if (this.$container) {
-        destroy();
-        this.$container.remove();
-      }
     });
 
     describe('subMenu opening', () => {
@@ -34,15 +36,27 @@ describe('DropdownMenu (RTL mode)', () => {
 
         const $dropdownMenu = $('.htDropdownMenu');
         const dropdownOffset = $dropdownMenu.offset();
-
         const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
         const subMenuItemOffset = subMenuItem.offset();
         const subMenuRoot = $('.htDropdownMenuSub_Alignment');
         const subMenuOffset = subMenuRoot.offset();
         const subMenuWidth = subMenuRoot.outerWidth();
 
-        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-        expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left - subMenuWidth, 0);
+        expect(subMenuOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
+        });
+        expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
+          // 3px comes from borders
+          classic.toBe(Math.floor(dropdownOffset.left - subMenuWidth));
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBe(Math.floor(dropdownOffset.left - subMenuWidth) + 1);
+          horizon.toBe(Math.floor(dropdownOffset.left - subMenuWidth));
+        });
       });
 
       it('should open subMenu on the right of the main menu if on the left there\'s no space left', async() => {
@@ -60,14 +74,25 @@ describe('DropdownMenu (RTL mode)', () => {
         const $dropdownMenu = $('.htDropdownMenu');
         const dropdownOffset = $dropdownMenu.offset();
         const dropdownWidth = $dropdownMenu.outerWidth();
-
         const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
         const subMenuItemOffset = subMenuItem.offset();
         const subMenuRoot = $('.htDropdownMenuSub_Alignment');
         const subMenuOffset = subMenuRoot.offset();
 
-        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-        expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left + dropdownWidth, 0);
+        expect(subMenuOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
+        });
+        expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(dropdownOffset.left + dropdownWidth, 0);
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(dropdownOffset.left + dropdownWidth - 1, 0);
+          horizon.toBeCloseTo(dropdownOffset.left + dropdownWidth, 0);
+        });
       });
     });
 
@@ -88,8 +113,93 @@ describe('DropdownMenu (RTL mode)', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(135);
-      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + $dropdownMenuRoot.outerWidth() - 4);
+      expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(135);
+        main.toBe(156);
+        horizon.toBe(195);
+      });
+      expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(dropdownMenuOffset.left + $dropdownMenuRoot.outerWidth() - 4);
+        main.toBe(dropdownMenuOffset.left + 1);
+        horizon.toBe(dropdownMenuOffset.left);
+      });
+    });
+  });
+
+  describe('subMenu opening', () => {
+    it('should open subMenu by default on the left-bottom position of the main menu (scrolled viewport) #dev-1895', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 100),
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      openDropdownSubmenuOption('Alignment', 0);
+
+      await sleep(350);
+
+      const $dropdownMenu = $('.htDropdownMenu');
+      const dropdownOffset = $dropdownMenu.offset();
+      const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
+      const subMenuItemOffset = subMenuItem.offset();
+      const subMenuRoot = $('.htDropdownMenuSub_Alignment');
+      const subMenuOffset = subMenuRoot.offset();
+      const subMenuWidth = subMenuRoot.outerWidth();
+
+      expect(subMenuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
+      });
+      expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
+        // 3px comes from borders
+        classic.toBe(Math.floor(dropdownOffset.left - subMenuWidth));
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBe(Math.floor(dropdownOffset.left - subMenuWidth) + 1);
+        horizon.toBe(Math.floor(dropdownOffset.left - subMenuWidth));
+      });
+    });
+
+    it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left (scrolled viewport) #dev-1895', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 100),
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      scrollViewportTo(0, 99);
+
+      await sleep(50);
+
+      openDropdownSubmenuOption('Alignment', 94);
+
+      await sleep(350);
+
+      const $dropdownMenu = $('.htDropdownMenu');
+      const dropdownOffset = $dropdownMenu.offset();
+      const dropdownWidth = $dropdownMenu.outerWidth();
+      const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
+      const subMenuItemOffset = subMenuItem.offset();
+      const subMenuRoot = $('.htDropdownMenuSub_Alignment');
+      const subMenuOffset = subMenuRoot.offset();
+
+      expect(subMenuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
+      });
+      expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(Math.floor(dropdownOffset.left + dropdownWidth));
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBe(Math.floor(dropdownOffset.left + dropdownWidth - 1));
+        horizon.toBe(Math.floor(dropdownOffset.left + dropdownWidth));
+      });
     });
   });
 });

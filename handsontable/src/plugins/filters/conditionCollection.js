@@ -1,4 +1,3 @@
-import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { mixin } from '../../helpers/object';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import localHooks from '../../mixins/localHooks';
@@ -103,8 +102,8 @@ class ConditionCollection {
    */
   addCondition(column, conditionDefinition, operation = OPERATION_AND, position) {
     const localeForColumn = this.hot.getCellMeta(0, column).locale;
-    const args = arrayMap(conditionDefinition.args,
-      v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
+    const args = conditionDefinition.args
+      .map(v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
 
     this.runLocalHooks('beforeAdd', column);
@@ -194,15 +193,16 @@ class ConditionCollection {
    * @returns {Array}
    */
   exportAllConditions() {
-    return arrayReduce(this.filteringStates.getEntries(), (allConditions, [column, { operation, conditions }]) => {
-      allConditions.push({
-        column,
-        operation,
-        conditions: arrayMap(conditions, ({ name, args }) => ({ name, args })),
-      });
+    return this.filteringStates.getEntries()
+      .reduce((allConditions, [column, { operation, conditions }]) => {
+        allConditions.push({
+          column,
+          operation,
+          conditions: conditions.map(({ name, args }) => ({ name, args: [...args] })),
+        });
 
-      return allConditions;
-    }, []);
+        return allConditions;
+      }, []);
   }
 
   /**
@@ -213,8 +213,8 @@ class ConditionCollection {
   importAllConditions(conditions) {
     this.clean();
 
-    arrayEach(conditions, (stack) => {
-      arrayEach(stack.conditions, condition => this.addCondition(stack.column, condition));
+    conditions.forEach((stack) => {
+      stack.conditions.forEach(condition => this.addCondition(stack.column, condition));
     });
   }
 

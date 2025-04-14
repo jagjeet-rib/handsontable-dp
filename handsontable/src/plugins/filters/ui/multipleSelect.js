@@ -106,10 +106,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   setItems(items) {
     this.#items = items;
-
-    if (this.#itemsBox) {
-      this.#itemsBox.loadData(this.#items);
-    }
+    this.#itemsBox?.loadData(this.#items);
   }
 
   /**
@@ -205,11 +202,10 @@ export class MultipleSelectUI extends BaseUI {
       if (!this._element) {
         return;
       }
-      if (this.#itemsBox) {
-        this.#itemsBox.destroy();
-      }
 
+      this.#itemsBox?.destroy();
       addClass(wrapper, 'htUIMultipleSelectHot');
+
       // Constructs and initializes a new Handsontable instance
       this.#itemsBox = new this.hot.constructor(wrapper, {
         data: this.#items,
@@ -239,9 +235,16 @@ export class MultipleSelectUI extends BaseUI {
         fillHandle: false,
         fragmentSelection: 'cell',
         tabMoves: { row: 1, col: 0 },
+        themeName: this.hot.getCurrentThemeName(),
         layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       });
       this.#itemsBox.init();
+
+      this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+        if (!firstRun) {
+          this.#itemsBox.useTheme(themeName);
+        }
+      });
 
       const shortcutManager = this.#itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
@@ -305,9 +308,7 @@ export class MultipleSelectUI extends BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (this.#itemsBox) {
-      this.#itemsBox.destroy();
-    }
+    this.#itemsBox?.destroy();
     this.#searchInput.destroy();
     this.#clearAllUI.destroy();
     this.#selectAllUI.destroy();

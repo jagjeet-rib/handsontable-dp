@@ -37,7 +37,11 @@ describe('NestedHeaders', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left - 50 });
       $resizer.simulate('mouseup');
 
-      expect(colWidth(spec().$container, 1)).toBe(20);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(20);
+        main.toBe(37);
+        horizon.toBe(45);
+      });
     });
 
     it('should be possible to resize a column using the `manualColumnSize` settings when both `manualColumnResize` and `nestedHeaders` plugins are enabled', () => {

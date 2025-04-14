@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 /* start:skip-in-preview */
 const products = [
@@ -253,7 +254,7 @@ const products = [
     inStock: true,
     qty: 385,
     orderId: '13-7828353',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Reichel Group',
@@ -280,7 +281,7 @@ const products = [
     inStock: true,
     qty: 305,
     orderId: '63-2315723',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Weber Inc',
@@ -479,7 +480,7 @@ const app = document.getElementById('example1');
 const hotOptions = {
   data: products,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 110, 178],
+  colWidths: [160, 165, 130, 120, 100, 110, 216],
   autoRowSize: true,
   colHeaders: [
     'Company name',

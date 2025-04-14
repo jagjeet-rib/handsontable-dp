@@ -12,7 +12,9 @@ const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
-const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
+const tableWrapper = require('./plugins/markdown-it-table-wrapper');
+const includeCodeSnippetPlugin = require('./plugins/include-code-snippet');
+
 const {
   createSymlinks,
   getDocsBase,
@@ -24,13 +26,6 @@ const {
 } = require('./helpers');
 
 require('dotenv').config();
-
-const DOCSEARCH_API_KEY = process.env.DOCSEARCH_API_KEY;
-const DOCSEARCH_APP_ID = process.env.DOCSEARCH_APP_ID;
-
-if (!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
-  throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
-}
 
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
@@ -48,6 +43,25 @@ const environmentHead = isProduction
       })(window,document,'script','dataLayer','GTM-55L5D3');
     `,
     ],
+    // HotJar, an extra element within the `ssr.html` file.
+    [
+      'script',
+      {},
+      `
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      `,
+    ],
   ]
   : [];
 
@@ -56,7 +70,6 @@ const environmentHead = isProduction
 createSymlinks();
 
 module.exports = {
-  // by default this always returns true, this is a issue as it preloads every documentation pages content
   shouldPrefetch: (_, type) => {
     if (type === 'script') {
       return false;
@@ -191,10 +204,10 @@ module.exports = {
       rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
-      md.use(includeCodeSnippet)
-        .use(conditionalContainer)
+      md.use(conditionalContainer)
         .use(firstHeaderInjection)
-        .use(headerAnchor);
+        .use(headerAnchor)
+        .use(tableWrapper);
     },
   },
   configureWebpack: {
@@ -216,6 +229,7 @@ module.exports = {
     },
   },
   plugins: [
+    includeCodeSnippetPlugin,
     extendPageDataPlugin,
     'tabs',
     [
@@ -393,13 +407,13 @@ module.exports = {
         'https://twitter.com/handsontable',
         'https://www.linkedin.com/company/handsontable',
       ],
-      image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
+      image: `${getDocsBaseFullUrl()}/img/handsontable-docs-cover.png`
     },
     searchPlaceholder: 'Search...',
     algolia: {
       indexName: 'handsontable',
-      apiKey: DOCSEARCH_API_KEY,
-      appId: DOCSEARCH_APP_ID
+      apiKey: 'c2430302c91e0162df988d4b383c9d8b',
+      appId: 'MMN6OTJMGX'
     }
   },
 };

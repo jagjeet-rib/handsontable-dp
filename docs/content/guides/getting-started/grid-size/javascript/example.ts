@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const triggerBtn = document.querySelector('#triggerBtn')!;
 const example = document.querySelector('#example')!;
@@ -20,7 +21,6 @@ const hot = new Handsontable(example, {
   colHeaders: true,
   width: '100%',
   height: '100%',
-  rowHeights: 23,
   colWidths: 100,
   autoWrapRow: true,
   autoWrapCol: true,

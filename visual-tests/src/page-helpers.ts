@@ -2,6 +2,8 @@ import type { Locator } from '@playwright/test';
 import PageHolder from './page-holder';
 import { helpers } from './helpers';
 
+type ModifierKey = 'Meta' | 'Control' | 'Alt' | 'ControlOrMeta' | 'Shift';
+
 // eslint-disable-next-line no-shadow
 export enum SortDirection {
   Ascending = 'ascending',
@@ -32,6 +34,12 @@ export enum FilterConditions {
   Yesterday = 'Yesterday',
 }
 
+// eslint-disable-next-line no-shadow
+export enum LayoutDirection {
+  LTR = 'ltr',
+  RTL = 'rtl',
+}
+
 /**
  * Get the page instance.
  *
@@ -47,7 +55,11 @@ function getPageInstance() {
  * @returns {Locator} The locator of the main table.
  */
 function getDefaultTableInstance() {
-  return getPageInstance().locator(helpers.selectors.mainTable);
+  const page = getPageInstance();
+  const mainTableLocator = page.locator(helpers.selectors.mainTable);
+  const themesMainTableLocator = page.locator(helpers.selectors.themesMainTable);
+
+  return mainTableLocator.first().or(themesMainTableLocator.first());
 }
 
 /**
@@ -94,8 +106,57 @@ export async function selectClonedCell(
  * @param {Locator} cell The locator of the cell.
  */
 export async function openEditor(cell: Locator) {
+  await cell.waitFor(); // Ensure the cell is available
+  await retry(async() => {
+    await cell.click();
+    await cell.press('Enter');
+  });
+}
+
+/**
+ * @param {Locator} cell The locator of the cell.
+ */
+export async function openContextMenu(cell: Locator) {
+  await cell.waitFor(); // Ensure the cell is available
+  await retry(async() => {
+    await cell.click({ button: 'right' });
+  });
+}
+
+/**
+ * @param {string} alignment The alignment to set.
+ * @param {Locator} cell The locator of the cell.
+ */
+export async function setCellAlignment(alignment: string, cell: Locator) {
+  await cell.waitFor(); // Ensure the cell is available
   await cell.click();
-  await cell.press('Enter');
+  await cell.click({ button: 'right' });
+  const menu = await getPageInstance().getByRole('menu');
+
+  await menu.waitFor();
+  await menu.getByRole('menuitem', { name: 'Alignment' }).hover();
+  await menu.getByText(alignment, { exact: true }).click();
+}
+
+/**
+ * Retry a function multiple times.
+ *
+ * @param {Function} fn - The function to retry.
+ * @param {number} retries - The number of retries.
+ */
+async function retry(fn: Function, retries: number = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await fn();
+
+      return;
+    } catch (error) {
+      if (i === retries - 1) {
+        throw error;
+      }
+    }
+  }
 }
 
 /**
@@ -189,7 +250,7 @@ export async function makeSelectionFromCell(cell: Locator, size: number) {
  * @param {number} columnIndex Cell locator.
  */
 export async function openHeaderDropdownMenu(columnIndex: number) {
-  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  const table = getDefaultTableInstance();
   const changeTypeButton = table.locator(
     helpers.findDropdownMenuExpander({ col: columnIndex })
   );
@@ -211,6 +272,17 @@ export async function selectFromDropdownMenu(option: string) {
 /**
  * @param {string} option Cell locator.
  */
+export async function selectFromContextMenu(option: string) {
+  const contextMenu = getPageInstance().locator(
+    helpers.selectors.contextMenu
+  );
+
+  await contextMenu.locator(option).click();
+}
+
+/**
+ * @param {string} option Cell locator.
+ */
 export async function selectCo(option: string) {
   const dropdownMenu = getPageInstance().locator(
     helpers.selectors.dropdownMenu
@@ -221,14 +293,36 @@ export async function selectCo(option: string) {
 
 /**
  * @param {string} columnName Column name.
+ * @param {Locator} table The locator of the table.
  */
-export async function selectColumnHeaderByNameAndOpenMenu(columnName: string) {
-  await getPageInstance()
+export async function selectColumnHeaderByNameAndOpenMenu(
+  columnName: string,
+  table = getDefaultTableInstance(),
+) {
+  await table
     .getByRole('columnheader', { name: columnName, exact: true })
     .click({
       button: 'right',
-      modifiers: ['Shift'],
     });
+}
+
+/**
+ * @param {number} columnIndex Cell locator.
+ * @param {ModifierKey} modifiers Optional click modifiers.
+ */
+export async function selectColumnHeaderByIndex(columnIndex: number, modifiers: ModifierKey[] = []) {
+  const table = getPageInstance().locator(helpers.selectors.mainTable);
+
+  await table.getByRole('columnheader').nth(columnIndex).click({ modifiers });
+}
+/**
+ * @param {number} rowIndex Cell locator.
+ * @param {ModifierKey} modifiers Optional click modifiers.
+ */
+export async function selectRowHeaderByIndex(rowIndex: number, modifiers: ModifierKey[] = []) {
+  const table = getPageInstance().locator(helpers.selectors.mainTable);
+
+  await table.getByRole('rowheader').nth(rowIndex).click({ modifiers });
 }
 
 /**
@@ -247,6 +341,15 @@ export async function rowsCount() {
   const count = await getPageInstance().getByRole('rowheader').count();
 
   return count;
+}
+
+/**
+ * @param {number} index Column index.
+ */
+export async function clearColumn(index: number) {
+  openHeaderDropdownMenu(index);
+  await getPageInstance().getByText('Clear column').click();
+
 }
 
 /**
@@ -367,4 +470,74 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
  */
 export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
   await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
+  await getPageInstance().waitForTimeout(500);
+
+}
+
+/**
+ * Undo the last action.
+ */
+export async function undo() {
+  const isMac = process.platform === 'darwin';
+
+  if (isMac) {
+    await getPageInstance().keyboard.press('Meta+Z');
+  } else {
+    await getPageInstance().keyboard.press('Control+Z');
+  }
+}
+
+/**
+ * Redo the last action.
+ */
+export async function redo() {
+  const isMac = process.platform === 'darwin';
+
+  if (isMac) {
+    await getPageInstance().keyboard.press('Meta+Y');
+  } else {
+    await getPageInstance().keyboard.press('Control+Y');
+  }
+}
+
+/**
+ * @param {string} columnName Column name.
+ * @param {number} resizeAmount Resize amount.
+ */
+export async function resizeColumn(columnName: string, resizeAmount: number) {
+  const columnHeader = getPageInstance().getByRole('columnheader', { name: columnName });
+
+  const box = await columnHeader.boundingBox();
+
+  if (box) {
+    await getPageInstance().mouse.move(box.x + box.width - 3, box.y + (box.height / 2));
+    await getPageInstance().waitForTimeout(500);
+
+    // Drag the resize handle to resize the column
+    await getPageInstance().mouse.down();
+    await getPageInstance().mouse.move(box.x + box.width + resizeAmount, box.y + (box.height / 2), { steps: 10 }); // Adjust the value to resize the column
+    await getPageInstance().mouse.up();
+  }
+}
+
+/**
+ * @param {number} rowIndex Row index.
+ * @param {number} resizeAmount Resize amount.
+ * @param {Locator} tableLocator The locator of the page.
+ */
+export async function resizeRow(rowIndex: number, resizeAmount: number, tableLocator = getDefaultTableInstance()) {
+
+  const box = await tableLocator.getByRole('rowheader').nth(rowIndex).boundingBox();
+
+  if (box) {
+    // Move to the bottom border of the row header
+    await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height - 3);
+    // Add a small delay to ensure the hover action is registered
+    await getPageInstance().waitForTimeout(500);
+
+    // Drag the resize handle to resize the row
+    await getPageInstance().mouse.down();
+    await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height + resizeAmount, { steps: 10 }); // Adjust the value to resize the row
+    await getPageInstance().mouse.up();
+  }
 }

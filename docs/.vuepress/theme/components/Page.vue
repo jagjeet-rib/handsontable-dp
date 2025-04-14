@@ -30,7 +30,9 @@ export default {
   },
   computed: {
     docsVersion() {
-      if (this.$page.versions[0] === 'next') return this.$page.versions[1];
+      if (this.$page.versions[0] === 'next') {
+        return this.$page.versions[1];
+      }
 
       return this.$page.versions[0];
     },
@@ -77,13 +79,6 @@ export default {
       setTimeout(() => {
         button.classList.remove('check');
       }, 2000);
-    },
-    reportCode() {
-      window.open(
-        // eslint-disable-next-line max-len
-        `https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`,
-        '_blank'
-      );
     },
     toggleDropdown(e) {
       const buttonDropdown = e.target;
@@ -146,17 +141,29 @@ export default {
     },
     openExample(path, preset, id) {
       const filename = (() => {
-        if (preset.includes('vue')) return `vue/${id}.js`;
+        if (preset.includes('vue')) {
+          return `vue/${id}.js`;
+        }
 
-        if (preset.includes('angular')) return `angular/${id}.js`;
+        if (preset.includes('angular')) {
+          return `angular/${id}.js`;
+        }
 
-        if (preset.includes('react') && this.selectedLang === 'TypeScript') return `react/${id}.tsx`;
+        if (preset.includes('react') && this.selectedLang === 'TypeScript') {
+          return `react/${id}.tsx`;
+        }
 
-        if (preset.includes('react') && this.selectedLang === 'JavaScript') return `react/${id}.jsx`;
+        if (preset.includes('react') && this.selectedLang === 'JavaScript') {
+          return `react/${id}.jsx`;
+        }
 
-        if (preset.includes('hot') && this.selectedLang === 'TypeScript') return `javascript/${id}.ts`;
+        if (preset.includes('hot') && this.selectedLang === 'TypeScript') {
+          return `javascript/${id}.ts`;
+        }
 
-        if (preset.includes('hot') && this.selectedLang === 'JavaScript') return `javascript/${id}.js`;
+        if (preset.includes('hot') && this.selectedLang === 'JavaScript') {
+          return `javascript/${id}.js`;
+        }
 
         return undefined;
       })();
@@ -182,14 +189,25 @@ export default {
         '_blank'
       );
     },
+    detectClickOutsideButton(e) {
+      const buttons = document.querySelectorAll('.select-type-button');
+
+      buttons.forEach((button) => {
+        if (!button.contains(e.target)) {
+          button.classList.remove('active');
+        }
+      });
+    }
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
     this.checkSectionInView();
+    window.addEventListener('click', this.detectClickOutsideButton);
     window.addEventListener('scroll', this.checkSectionInView);
   },
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
+    window.removeEventListener('click', this.detectClickOutsideButton);
   },
 };
 </script>

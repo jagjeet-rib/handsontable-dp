@@ -1,10 +1,10 @@
 describe('AutocompleteEditor', () => {
-  const id = 'testContainer';
   const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black',
     'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -55,8 +55,148 @@ describe('AutocompleteEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position while opening an editor from top to bottom when ' +
-     'top and bottom overlays are enabled', () => {
+  it.forTheme('classic')('should render an editor in specified position while opening an ' +
+    'editor from top to bottom when top and bottom overlays are enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it.forTheme('main')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', () => {
+    spec().$container.css('height', '245px');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
+    'from top to bottom when top and bottom overlays are enabled', () => {
+    spec().$container.css('height', '313px');
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
       rowHeaders: true,
@@ -346,8 +486,7 @@ describe('AutocompleteEditor', () => {
       expect(isEditorVisible()).toBe(true);
     });
 
-    // see https://github.com/handsontable/handsontable/issues/3380
-    it('should not throw error while selecting the next cell by hitting enter key', () => {
+    it('should not throw error while selecting the next cell by hitting enter key (#3380)', () => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -371,29 +510,162 @@ describe('AutocompleteEditor', () => {
       window.onerror = prevError;
     });
 
-    it('should open editor with the proper width of the autocomplete list', async() => {
+    it('should open editor with the correct size when there is no scrollbar on the list', async() => {
       handsontable({
-        colWidths: 50,
+        colWidths: 120,
         columns: [
           {
             editor: 'autocomplete',
-            source: choices,
-            visibleRows: 2,
+            source: choices.slice(0, 5),
+            visibleRows: 5,
           }
         ]
       });
-      const scrollbarWidth = Handsontable.dom.getScrollbarWidth();
-      const expectedWidth = 50 + (scrollbarWidth === 0 ? 15 : scrollbarWidth);
 
       selectCell(0, 0);
-
-      const editor = $('.autocompleteEditor');
-
       keyDownUp('enter');
 
       await sleep(100);
 
-      expect(editor.find('.ht_master .wtHolder').width()).toBe(expectedWidth);
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(120);
+        main.toBe(118);
+        horizon.toBe(133);
+      });
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(118);
+        main.toBe(146);
+        horizon.toBe(148);
+      });
+    });
+
+    it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices.slice(0, 5),
+            visibleRows: 5,
+            trimDropdown: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(52);
+        main.toBe(62);
+        horizon.toBe(85);
+      });
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(118);
+        main.toBe(146);
+        horizon.toBe(148);
+      });
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 3,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(72);
+        main.toBe(88);
+        horizon.toBe(112);
+      });
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list and table overflow is hidden', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: choices.length,
+          }
+        ],
+        height: 'auto'
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(69);
+        main.toBe(87);
+        horizon.toBe(111);
+      });
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 3,
+            trimDropdown: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(62 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(70 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(72);
+        main.toBe(88);
+        horizon.toBe(112);
+      });
     });
   });
 
@@ -661,10 +933,15 @@ describe('AutocompleteEditor', () => {
       keyDownUp('enter');
 
       await sleep(200);
+
       // -2 for transparent borders
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
-      expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(187);
+      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main, horizon }) => {
+        classic.toBeGreaterThan(187);
+        main.toEqual(180);
+        horizon.toEqual(172);
+      });
     });
 
     it('should display the autocomplete list with correct dimensions, after updating the choice list from no match' +
@@ -887,94 +1164,226 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below the cell AND' +
-       'there is more space above the cell', async() => {
+    it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
         width: 400,
-        height: 400
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
       });
 
-      setDataAtCell(29, 0, '');
-      selectCell(29, 0);
+      mouseDoubleClick($(getCell(6, 0)));
 
-      mouseDoubleClick($(getCell(29, 0)));
+      await sleep(50);
 
-      await sleep(200);
+      const container = $(getActiveEditor().htContainer);
 
-      const autocompleteEditor = $('.autocompleteEditor');
-
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
-      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+      expect(container.offset()).toEqual({ top: getDefaultRowHeight(), left: 0 });
     });
 
-    it('should not display the dropdown above the editor, when there is not enough space below when ' +
-       'the table uses the `preventOverflow` option', async() => {
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 5),
+        editor: 'autocomplete',
+        source: choices,
+        width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(5, 0)));
+
+      await sleep(50);
+
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
+
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 23, left: 0 });
+        main.toEqual({ top: 29, left: 0 });
+        horizon.toEqual({ top: 37, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 139, left: 0 });
+        main.toEqual({ top: 175, left: 0 });
+        horizon.toEqual({ top: 223, left: 0 });
+      });
+    });
+
+    it('should limit the list to the space size left below the editor (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
+        visibleRows: 20,
+        width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(2, 0)));
+
+      await sleep(50);
+
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(115);
+        main.toEqual(147);
+        horizon.toEqual(185);
+      });
+    });
+
+    it('should limit the list to the space size left above the editor (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
+        visibleRows: 20,
+        width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(6, 0)));
+
+      await sleep(50);
+
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(115);
+        main.toEqual(147);
+        horizon.toEqual(185);
+      });
+    });
+
+    it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
       spec().$container
         .css('overflow', '')
         .css('width', '')
         .css('height', '');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
-        preventOverflow: 'horizontal',
+        data: createEmptySpreadsheetData(40, 30),
+        editor: 'autocomplete',
+        source: choices,
       });
 
-      setDataAtCell(29, 0, '');
-      selectCell(29, 0);
+      const cell = document.elementsFromPoint(
+        0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
-      mouseDoubleClick($(getCell(29, 0)));
+      mouseDoubleClick($(cell));
 
-      await sleep(200);
+      await sleep(50);
 
-      const autocompleteEditor = $('.autocompleteEditor');
+      const container = $(getActiveEditor().htContainer);
 
-      expect(autocompleteEditor.css('position')).toBe('relative');
-      expect(autocompleteEditor.css('top')).toBe('0px');
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 365, left: 0 });
+        main.toEqual({ top: 289, left: 0 });
+        horizon.toEqual({ top: 184, left: 0 });
+      });
     });
 
-    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
-        width: 400,
-        height: 400
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: createEmptySpreadsheetData(40, 30),
+        editor: 'autocomplete',
+        source: choices,
       });
 
-      setDataAtCell(26, 0, 'b');
-      selectCell(26, 0);
+      const cell = document.elementsFromPoint(
+        0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
-      hot.view._wt.wtTable.holder.scrollTop = 999;
-      mouseDoubleClick($(getCell(26, 0)));
+      mouseDoubleClick($(cell));
 
-      const autocompleteEditor = $('.autocompleteEditor');
+      await sleep(50);
 
-      await sleep(100);
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
 
-      autocompleteEditor.siblings('textarea').first().val('');
-      keyDownUp('backspace');
-      await sleep(100);
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
 
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
-      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 480, left: 0 });
+        main.toEqual({ top: 434, left: 0 });
+        horizon.toEqual({ top: 369, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 622, left: 0 });
+        main.toEqual({ top: 610, left: 0 });
+        horizon.toEqual({ top: 593, left: 0 });
+      });
+    });
+
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size, scrolled viewport)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: createEmptySpreadsheetData(100, 30),
+        editor: 'autocomplete',
+        source: choices,
+      });
+
+      window.scrollTo(0, 10000); // scroll to the bottom
+
+      await sleep(50);
+
+      mouseDoubleClick($(getCell(96, 0)));
+
+      await sleep(50);
+
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
+
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 2090, left: 0 });
+        main.toEqual({ top: 2638, left: 0 });
+        horizon.toEqual({ top: 3366, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ top: 2232, left: 0 });
+        main.toEqual({ top: 2814, left: 0 });
+        horizon.toEqual({ top: 3590, left: 0 });
+      });
     });
   });
 
@@ -1418,7 +1827,7 @@ describe('AutocompleteEditor', () => {
   });
 
   describe('strict mode', () => {
-    it('strict mode should NOT use value if it DOES NOT match the list (sync reponse is empty)', async() => {
+    it('strict mode should NOT use value if it DOES NOT match the list (sync response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('syncSources');
@@ -1459,7 +1868,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(1); // 1 for loadData (it is not called after failed edit)
     });
 
-    it('strict mode should use value if it DOES match the list (sync reponse is not empty)', async() => {
+    it('strict mode should use value if it DOES match the list (sync response is not empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('asyncSources');
@@ -1500,7 +1909,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
-    it('strict mode should NOT use value if it DOES NOT match the list (async reponse is empty)', async() => {
+    it('strict mode should NOT use value if it DOES NOT match the list (async response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const asyncSources = jasmine.createSpy('asyncSources');
@@ -1543,7 +1952,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(1); // 1 for loadData (it is not called after failed edit)
     });
 
-    it('strict mode should use value if it DOES match the list (async reponse is not empty)', async() => {
+    it('strict mode should use value if it DOES match the list (async response is not empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const asyncSources = jasmine.createSpy('asyncSources');
@@ -1586,7 +1995,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
-    it('strict mode mark value as invalid if it DOES NOT match the list (sync reponse is empty)', async() => {
+    it('strict mode mark value as invalid if it DOES NOT match the list (sync response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('syncSources');
@@ -2651,7 +3060,11 @@ describe('AutocompleteEditor', () => {
     const dropdownList = $('.autocompleteEditor tbody').first();
     const listLength = dropdownList.find('tr').size();
 
-    expect(listLength).toBe(9);
+    expect(listLength).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(9);
+      main.toBe(9);
+      horizon.toBe(8);
+    });
 
     for (let i = 1; i <= listLength; i++) {
       expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choicesList[i - 1]);

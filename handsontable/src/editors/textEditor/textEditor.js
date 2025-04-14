@@ -3,8 +3,7 @@ import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
-  getComputedStyle,
-  isThisHotChild,
+  isInternalElement,
   setCaretPosition,
   hasClass,
   removeClass,
@@ -15,8 +14,7 @@ import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { updateCaretPosition } from './caretPositioner';
 import {
-  A11Y_HIDDEN,
-  A11Y_TABINDEX
+  A11Y_TABINDEX,
 } from '../../helpers/a11y';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
@@ -131,7 +129,7 @@ export class TextEditor extends BaseEditor {
   close() {
     this.autoResize.unObserve();
 
-    if (isThisHotChild(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
+    if (isInternalElement(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 
@@ -213,12 +211,6 @@ export class TextEditor extends BaseEditor {
       ['data-hot-input', ''],
       A11Y_TABINDEX(-1),
     ]);
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_HIDDEN(),
-      ]);
-    }
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -353,30 +345,18 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     this.showEditableElement();
 
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = this.hot.rootWindow.getComputedStyle(this.TD);
 
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
 
-    const textareaComputedStyle = getComputedStyle(this.TEXTAREA);
-
-    const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) +
-      parseInt(textareaComputedStyle.paddingRight, 10);
-    const verticalPadding = parseInt(textareaComputedStyle.paddingTop, 10) +
-      parseInt(textareaComputedStyle.paddingBottom, 10);
-
-    const finalWidth = width - horizontalPadding;
-    const finalHeight = height - verticalPadding;
-    const finalMaxWidth = maxWidth - horizontalPadding;
-    const finalMaxHeight = maxHeight - verticalPadding;
-
     this.autoResize.init(this.TEXTAREA, {
-      minWidth: Math.min(finalWidth, finalMaxWidth),
-      minHeight: Math.min(finalHeight, finalMaxHeight),
+      minWidth: Math.min(width, maxWidth),
+      minHeight: Math.min(height, maxHeight),
       // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-      maxWidth: finalMaxWidth,
-      maxHeight: finalMaxHeight,
+      maxWidth,
+      maxHeight,
     }, true);
   }
 

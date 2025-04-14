@@ -2,7 +2,12 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+
+  if (typeof __ENV_ARGS__ !== 'undefined') {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  }
 });
+
 afterEach(() => {
   specContext.spec = null;
 });
@@ -75,19 +80,20 @@ export function handsontableMethodFactory(method) {
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
+export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
+export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countCols = handsontableMethodFactory('countCols');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
 export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
+export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
+export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
+export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
-export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
-export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
-export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
-export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
@@ -107,6 +113,7 @@ export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
 export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
 export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
@@ -114,8 +121,20 @@ export const getDataAtProp = handsontableMethodFactory('getDataAtProp');
 export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
+export const getFirstFullyVisibleColumn = handsontableMethodFactory('getFirstFullyVisibleColumn');
+export const getFirstFullyVisibleRow = handsontableMethodFactory('getFirstFullyVisibleRow');
+export const getFirstPartiallyVisibleColumn = handsontableMethodFactory('getFirstPartiallyVisibleColumn');
+export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPartiallyVisibleRow');
+export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
+export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
 export const getInstance = handsontableMethodFactory('getInstance');
+export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
+export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');
+export const getLastPartiallyVisibleColumn = handsontableMethodFactory('getLastPartiallyVisibleColumn');
+export const getLastPartiallyVisibleRow = handsontableMethodFactory('getLastPartiallyVisibleRow');
+export const getLastRenderedVisibleColumn = handsontableMethodFactory('getLastRenderedVisibleColumn');
+export const getLastRenderedVisibleRow = handsontableMethodFactory('getLastRenderedVisibleRow');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
 export const getRowHeight = handsontableMethodFactory('getRowHeight');
@@ -132,18 +151,19 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const hasHook = handsontableMethodFactory('hasHook');
 export const isListening = handsontableMethodFactory('isListening');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
-export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
-export const updateData = handsontableMethodFactory('updateData');
-export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
+export const runHooks = handsontableMethodFactory('runHooks');
 export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
+export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
 export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');
@@ -157,11 +177,40 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
-export const undo = handsontableMethodFactory('undo');
+export const unlisten = handsontableMethodFactory('unlisten');
+export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
-export const unlisten = handsontableMethodFactory('unlisten');
+
+/**
+ * @returns {number} Returns the default row height based on the current theme.
+ */
+export function getDefaultRowHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 29;
+    case 'horizon':
+      return 37;
+    default:
+      return 23; // classic
+  }
+}
+
+/**
+ * @returns {number} Returns the default column header height based on the current theme.
+ */
+export function getDefaultColumnHeaderHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 28;
+    case 'horizon':
+      return 36;
+    default:
+      return 25; // classic
+  }
+}
 
 /**
  * @returns {object} Returns the spec object for currently running test.
@@ -262,8 +311,22 @@ export function setScrollLeft(x) {
  * @returns {Handsontable}
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
+  const loadedTheme = spec().loadedTheme;
+
   // Add a license key to every Handsontable instance.
-  if (options && !explicitOptions) {
+  if (!explicitOptions) {
+    if (!options) {
+      options = {};
+    }
+
+    if (
+      !options.themeName &&
+      loadedTheme &&
+      loadedTheme !== 'classic'
+    ) {
+      options.themeName = `ht-theme-${spec().loadedTheme}`;
+    }
+
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 
@@ -1061,6 +1124,30 @@ export function simulateTouch(target) {
 }
 
 /**
+ * Simulates the application of modern theme styles to a Handsontable context.
+ *
+ * @param {HTMLElement|jQuery} container - The container element to which the styles will be applied.
+ */
+export function simulateModernThemeStylesheet(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.setProperty('--ht-line-height', '17px');
+  element.style.setProperty('--ht-cell-vertical-padding', '5px');
+}
+
+/**
+ * Clears the modern theme styles simulation applied using the `simulateModernThemeStylesheet` method.
+ *
+ * @param {HTMLElement|jQuery} container - The container element.
+ */
+export function clearModernThemeStylesheetMock(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.removeProperty('--ht-line-height');
+  element.style.removeProperty('--ht-cell-vertical-padding');
+}
+
+/**
  * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
  * values (e.q "A1", "A2"...).
  *
@@ -1069,6 +1156,16 @@ export function simulateTouch(target) {
  */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+/**
+ * Creates spreadsheet data as an array of arrays filled with an empty string.
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createEmptySpreadsheetData(...args) {
+  return Handsontable.helper.createEmptySpreadsheetData(...args);
 }
 
 /**

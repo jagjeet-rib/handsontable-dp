@@ -308,6 +308,32 @@ describe('PasswordEditor', () => {
 
   });
 
+  it('should correctly calculate the input width based on typed values', async() => {
+    handsontable({
+      columns: [
+        {
+          editor: 'password'
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const editor = getActiveEditor().TEXTAREA;
+
+    editor.value = 'wwwwwwwwwwwwwwwwww'; // "w" is wider than password dots
+    keyDownUp('w'); // trigger editor autoresize
+
+    await sleep(10);
+
+    expect(editor.style.width).forThemes(({ classic, main, horizon }) => {
+      classic.toBe('93px');
+      main.toBe('107px');
+      horizon.toBe('115px');
+    });
+  });
+
   it('should set passwordEditor using \'password\' alias', () => {
     handsontable({
       data: [

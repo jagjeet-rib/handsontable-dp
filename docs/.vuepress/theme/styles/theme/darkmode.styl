@@ -98,7 +98,7 @@ html.theme-dark {
     
     }
     .decoration-right {
-        opacity 1
+        opacity 0.2
     }
 
     /* Sidebar 
@@ -108,9 +108,13 @@ html.theme-dark {
 
         .info-box { 
             background: $gradient2
+            border: 1px solid $borderColor
 
             span { 
-                background-color: $accentColor
+                &:before {
+                    background-color: $accentColor
+                    opacity: 0.8
+                }
                 
                 i { 
                     //filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
@@ -151,12 +155,13 @@ html.theme-dark {
                 }
             }
             > .sidebar-group {
-                p, a { 
-                    color:  $textColor 
-
-                    &.open { 
+                &.open {
+                    p, a {
                         color: $textColor
                     }
+                }
+                p, a { 
+                    color:  $textColor
 
                     @media (hover: hover) {
                         &:hover { 
@@ -410,6 +415,10 @@ html.theme-dark {
 
     //Page
     .page {
+        .table-wrapper {
+            box-shadow: 0 0 0 1px $borderColor 
+        }
+
         .breadcrumbs {
             a {
                 color: $text2Color
@@ -457,10 +466,10 @@ html.theme-dark {
                 }
             }
             
-            .instalationPage h2 code:first-child {
-                border: 1px solid $text2Color
-                background: $borderColor
-                color: $textColor
+            .instalationPage h2:before {
+                border: 1px solid $borderColor !important
+                background: $borderColor !important
+                color: $textColor !important
             }
 
             p {
@@ -715,7 +724,6 @@ html.theme-dark {
         }
         
         .footer {
-            border-top: 1px solid $borderColor   
             color: $text2Color
 
             .copyright {
@@ -723,6 +731,7 @@ html.theme-dark {
             }
 
             .footer-links { 
+                border-top: 1px solid $borderColor   
                 color: $text2Color
 
                 div { 
@@ -794,6 +803,14 @@ html.theme-dark {
                     background: $borderColor 
                     border: 1px solid $accentColor
                 }
+            }
+        }
+
+        .theme-examples-controls .color-box {
+            background: var(--color-gray-600)
+
+            .color {
+                border: 1px solid var(--color-gray-700)
             }
         }
     }
@@ -1361,7 +1378,14 @@ html.theme-dark {
     
     .controls:not(button), .example-container {
 
-        #mainInput, select:not(.htSelectEditor), input[type=text], input[type=search], .placeholder-input {
+        label:has(select) {
+            &:after {
+                border-bottom: 1px solid $textColor !important;
+                border-right: 1px solid $textColor !important;
+            }
+        }
+
+        #mainInput, select:not([data-hot-input]), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
             border: 1px solid $lightBorderColor
             background: $borderColor
@@ -1389,6 +1413,15 @@ html.theme-dark {
         }
     }
     
+    .page-404 {
+        h1 {
+            color: $textColor
+        }
+    }
+
+    .img-invert img {
+        filter: invert(1);
+    }
 }
 
 

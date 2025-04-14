@@ -263,7 +263,11 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($headerTH.offset().left);
-          expect($backlight.width()).toBe(50);
+          expect($backlight.width()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(50);
+            main.toBe(50);
+            horizon.toBe(51);
+          });
         });
 
         it('should get correct position and size while grabing the multiple columns placed after hidden columns', () => {
@@ -294,7 +298,11 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($firstHeaderTH.offset().left);
-          expect($backlight.width()).toBe(150); // 50 * 3
+          expect($backlight.width()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(150); // 50 * 3
+            main.toBe(150);
+            horizon.toBe(155);
+          });
         });
 
         it('should get correct position and size while grabing the column placed before hidden columns', () => {
@@ -317,7 +325,11 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($headerTH.offset().left);
-          expect($backlight.width()).toBe(50);
+          expect($backlight.width()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(50);
+            main.toBe(50);
+            horizon.toBe(52);
+          });
         });
 
         it('should get correct position and size while grabing the multiple columns placed before hidden columns', () => {
@@ -348,7 +360,11 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($firstHeaderTH.offset().left);
-          expect($backlight.width()).toBe(150); // 50 * 3
+          expect($backlight.width()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(150); // 50 * 3
+            main.toBe(150);
+            horizon.toBe(155);
+          });
         });
       });
 
@@ -381,7 +397,11 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($secondHeaderTH.offset().left - 1);
+          expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($secondHeaderTH.offset().left - 1);
+            main.toBe($secondHeaderTH.offset().left - 0.5);
+            horizon.toBe($secondHeaderTH.offset().left - 0.5);
+          });
         });
 
         it('should get correct position while grabing the column placed after hidden columns (moving left)', () => {
@@ -412,7 +432,11 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+          expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+            main.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
+            horizon.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
+          });
         });
 
         it('should get correct position while grabing the column placed before hidden columns (moving right)', () => {
@@ -443,7 +467,11 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($secondHeaderTH.offset().left - 1);
+          expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($secondHeaderTH.offset().left - 1);
+            main.toBe($secondHeaderTH.offset().left - 0.5);
+            horizon.toBe($secondHeaderTH.offset().left - 0.5);
+          });
         });
 
         it('should get correct position while grabing the column placed before hidden columns (moving left)', () => {
@@ -474,7 +502,11 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+          expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+            main.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
+            horizon.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
+          });
         });
       });
     });

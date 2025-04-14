@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector<HTMLDivElement>('#example3')!;
 
@@ -25,7 +26,7 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
 });
 
-// check a cell's options
+// checks a cell's options
 // returns `false`
 hot.getCellMeta(0, 0).readOnly;
 

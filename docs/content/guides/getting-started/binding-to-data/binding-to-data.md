@@ -121,8 +121,8 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 ::: example #example4 .custom-class :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example4.jsx)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example4.tsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example4.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example4.tsx)
 
 :::
 
@@ -414,7 +414,7 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 
 ## Working with a copy of data
 
-When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
+When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `structuredClone(data)` or legacy `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
 ::: only-for javascript
 

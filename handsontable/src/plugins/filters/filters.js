@@ -25,8 +25,6 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 
-import './filters.scss';
-
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -130,11 +128,24 @@ export class Filters extends BasePlugin {
    * @type {MenuFocusNavigator|undefined}
    */
   #menuFocusNavigator;
+  /**
+   * Traces the new menu instances to apply the focus navigation to the latest one.
+   *
+   * @type {WeakSet<Menu>}
+   */
+  #dropdownMenuTraces = new WeakSet();
+  /**
+   * Stores the previous state of the condition stack before the latest filter operation.
+   * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+   *
+   * @type {Array}
+   */
+  #previousConditionStack = [];
 
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
   }
 
   /**
@@ -234,8 +245,8 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.addHook('afterDropdownMenuDefaultOptions',
-      defaultOptions => this.#onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuDefaultOptions', (...args) => this.#onAfterDropdownMenuDefaultOptions(...args));
+    this.addHook('beforeDropdownMenuShow', () => this.#onBeforeDropdownMenuShow());
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
@@ -247,16 +258,16 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
-      const mainMenu = this.dropdownMenuPlugin.menu;
       const focusableItems = [
         // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
         // to the menu navigation using arrow keys.
         {
           focus: () => {
-            const menuNavigator = mainMenu.getNavigator();
+            const menu = this.#menuFocusNavigator.getMenu();
+            const menuNavigator = menu.getNavigator();
             const lastSelectedMenuItem = this.#menuFocusNavigator.getLastMenuPage();
 
-            mainMenu.focus();
+            menu.focus();
 
             if (lastSelectedMenuItem > 0) {
               menuNavigator.setCurrentPage(lastSelectedMenuItem);
@@ -270,7 +281,7 @@ export class Filters extends BasePlugin {
           .flat(),
       ];
 
-      this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);
+      this.#menuFocusNavigator = createMenuFocusController(this.dropdownMenuPlugin.menu, focusableItems);
 
       const forwardToFocusNavigation = (event) => {
         this.#menuFocusNavigator.listen();
@@ -503,6 +514,51 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Imports filter conditions to all columns to the plugin. The method accepts
+   * the array of conditions with the same structure as the {@link Filters#exportConditions} method returns.
+   * Importing conditions will replace the current conditions. Once replaced, the state of the condition
+   * will be reflected in the UI. To apply the changes and filter the table, call
+   * the {@link Filters#filter} method eventually.
+   *
+   * @param {Array} conditions Array of conditions.
+   */
+  importConditions(conditions) {
+    this.conditionCollection.importAllConditions(conditions);
+  }
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Exports filter conditions for all columns from the plugin.
+   * The array represents the filter state for each column. For example:
+   *
+   * ```js
+   * [
+   *   {
+   *     column: 1,
+   *     operation: 'conjunction',
+   *     conditions: [
+   *       { name: 'gt', args: [95] },
+   *     ]
+   *   },
+   *   {
+   *     column: 7,
+   *     operation: 'conjunction',
+   *     conditions: [
+   *       { name: 'contains', args: ['mike'] },
+   *       { name: 'begins_with', args: ['m'] },
+   *     ]
+   *   },
+   * ]
+   * ```
+   *
+   * @returns {Array}
+   */
+  exportConditions() {
+    return this.conditionCollection.exportAllConditions();
+  }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /**
    * Filters data based on added filter conditions.
    *
    * @fires Hooks#beforeFilter
@@ -514,8 +570,12 @@ export class Filters extends BasePlugin {
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
 
-    const conditions = this.conditionCollection.exportAllConditions();
-    const allowFiltering = this.hot.runHooks('beforeFilter', conditions);
+    const conditions = this.exportConditions();
+    const allowFiltering = this.hot.runHooks(
+      'beforeFilter',
+      conditions,
+      this.#previousConditionStack
+    );
 
     if (allowFiltering !== false) {
       if (needToFilter) {
@@ -545,12 +605,15 @@ export class Filters extends BasePlugin {
       } else {
         this.filtersRowsMap.clear();
       }
+
+      this.#previousConditionStack = this.exportConditions();
+      this.hot.runHooks('afterFilter', conditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
+
+    } else {
+      this.importConditions(this.#previousConditionStack);
     }
-
-    this.hot.runHooks('afterFilter', conditions);
-
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
 
     if (this.hot.selection.isSelected()) {
       this.hot.selectCell(
@@ -659,7 +722,11 @@ export class Filters extends BasePlugin {
    * After dropdown menu show listener.
    */
   #onAfterDropdownMenuShow() {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.restoreComponents(Array.from(this.components.values()));
+
+    menu.updateMenuDimensions();
   }
 
   /**
@@ -668,6 +735,19 @@ export class Filters extends BasePlugin {
   #onAfterDropdownMenuHide() {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
+  }
+
+  /**
+   * Hooks applies the new dropdown menu instance to the focus navigator.
+   */
+  #onBeforeDropdownMenuShow() {
+    const mainMenu = this.dropdownMenuPlugin.menu;
+
+    if (!this.#dropdownMenuTraces.has(mainMenu)) {
+      this.#menuFocusNavigator.setMenu(mainMenu);
+    }
+
+    this.#dropdownMenuTraces.add(mainMenu);
   }
 
   /**
@@ -761,7 +841,6 @@ export class Filters extends BasePlugin {
 
       this.conditionUpdateObserver.flush();
       this.components.forEach(component => component.saveState(physicalIndex));
-      this.filtersRowsMap.clear();
       this.filter();
     }
 
@@ -775,11 +854,15 @@ export class Filters extends BasePlugin {
    * @param {object} command Menu item object (command).
    */
   #onComponentChange(component, command) {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
       this.setListeningDropdownMenu();
     }
+
+    menu.updateMenuDimensions();
   }
 
   /**
@@ -826,11 +909,18 @@ export class Filters extends BasePlugin {
    *
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
+   * @param {number} headerLevel The index of header level counting from the top (positive
+   *                             values counting from 0 to N).
+   *
    */
-  #onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH, headerLevel) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
-    if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
+    if (
+      this.enabled
+      && this.conditionCollection.hasConditions(physicalColumn)
+      && headerLevel === this.hot.view.getColumnHeadersCount() - 1
+    ) {
       addClass(TH, 'htFiltersActive');
     } else {
       removeClass(TH, 'htFiltersActive');
@@ -864,8 +954,25 @@ export class Filters extends BasePlugin {
       editedConditionStack: {
         conditions,
         column,
-      }
+      },
+      conditionArgsChange,
     } = conditionsState;
+
+    if (Array.isArray(conditionArgsChange)) {
+      // update the previous condition stack (only for 'by_value' condition) on each dataset
+      // change to make the undo/redo work properly
+      this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
+        if (stack.column === column && conditions.length > 0) {
+          stack.conditions.forEach((condition) => {
+            if (condition.name === 'by_value') {
+              condition.args = [[...conditionArgsChange]];
+            }
+          });
+        }
+
+        return stack;
+      });
+    }
 
     const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);

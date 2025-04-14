@@ -179,9 +179,6 @@ class Overlays {
 
     this.initOverlays();
 
-    this.hasScrollbarBottom = false;
-    this.hasScrollbarRight = false;
-
     this.destroyed = false;
     this.keyPressed = false;
     this.spreaderLastSize = {
@@ -367,41 +364,31 @@ class Overlays {
     ];
 
     overlays.forEach((overlay) => {
-      if (overlay && overlay.needFullRender) {
-        const { holder } = overlay.clone.wtTable; // todo rethink, maybe: overlay.getHolder()
-
-        this.eventManager.addEventListener(
-          holder,
-          'wheel',
-          event => this.onCloneWheel(event, preventWheel),
-          wheelEventOptions
-        );
-      }
+      this.eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'wheel',
+        event => this.onCloneWheel(event, preventWheel),
+        wheelEventOptions
+      );
     });
 
     let resizeTimeout;
 
     this.eventManager.addEventListener(rootWindow, 'resize', () => {
-      clearTimeout(resizeTimeout);
-
-      resizeTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        clearTimeout(resizeTimeout);
         this.wtSettings.getSetting('onWindowResize');
 
-        // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
-        this.#containerDomResizeCount = 0;
-      }, 200);
+        resizeTimeout = setTimeout(() => {
+          // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
+          this.#containerDomResizeCount = 0;
+        }, 200);
+      });
     });
 
     if (!isScrollOnWindow) {
       this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
     }
-  }
-
-  /**
-   * Deregister all previously registered listeners.
-   */
-  deregisterListeners() {
-    this.eventManager.clearEvents(true);
   }
 
   /**
@@ -599,7 +586,7 @@ class Overlays {
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
-    this.deregisterListeners();
+    this.eventManager.clearEvents(true);
 
     this.inlineStartOverlay.updateMainScrollableElement();
     this.topOverlay.updateMainScrollableElement();
@@ -625,7 +612,7 @@ class Overlays {
   destroy() {
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
-    // todo, probably all below `destory` calls has no sense. To analyze
+    // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
 
     if (this.bottomOverlay.clone) {
@@ -724,26 +711,6 @@ class Overlays {
     // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
     hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
     hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
-
-    if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
-      const {
-        scrollHeight: rootElemScrollHeight,
-        scrollWidth: rootElemScrollWidth,
-      } = wtTable.wtRootElement;
-      const {
-        scrollHeight: holderScrollHeight,
-        scrollWidth: holderScrollWidth,
-      } = wtTable.holder;
-
-      this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
-      this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
-
-      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollbarSize > rootElemScrollWidth) {
-        this.hasScrollbarBottom = true;
-      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollbarSize > rootElemScrollHeight) {
-        this.hasScrollbarRight = true;
-      }
-    }
 
     this.topOverlay.adjustElementsSize();
     this.inlineStartOverlay.adjustElementsSize();

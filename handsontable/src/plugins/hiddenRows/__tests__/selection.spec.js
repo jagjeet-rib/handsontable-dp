@@ -258,7 +258,11 @@ describe('HiddenRows', () => {
       |===|
       | A |
       `).toBeMatchToSelectionPattern();
-      expect($leftBorderArea.height()).toBe(23);
+      expect($leftBorderArea.height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(23);
+        main.toBe(29);
+        horizon.toBe(37);
+      });
       expect($topBorderArea.width()).toBe(49);
     });
 

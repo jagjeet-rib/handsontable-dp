@@ -141,35 +141,43 @@ describe('AutoRowSize', () => {
       const nrOfRows = SYNC_CALCULATION_LIMIT - 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
       await sleep(200);
       const newHeight = spec().$container[0].scrollHeight;
 
-      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+      expect(newHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+      });
     });
 
     it('(SYNC_CALCULATION_LIMIT + 1 rows)', async() => {
       const nrOfRows = SYNC_CALCULATION_LIMIT + 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
       await sleep(200);
       const newHeight = spec().$container[0].scrollHeight;
 
-      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+      expect(newHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+      });
     });
 
     it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1 rows)', async() => {
       const nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
@@ -177,21 +185,29 @@ describe('AutoRowSize', () => {
 
       const newHeight = spec().$container[0].scrollHeight;
 
-      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+      expect(newHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+      });
     });
 
     it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1 rows)', async() => {
       const nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
       await sleep(200);
       const newHeight = spec().$container[0].scrollHeight;
 
-      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+      expect(newHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
+        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+      });
     });
   });
 
@@ -207,9 +223,22 @@ describe('AutoRowSize', () => {
     spec().$container.css('display', 'block');
     hot.render();
 
-    expect(rowHeight(spec().$container, 0)).toBe(24);
-    expect(rowHeight(spec().$container, 1)).toBe(43);
-    expect([106, 127]).toEqual(jasmine.arrayContaining([rowHeight(spec().$container, 2)]));
+    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(24);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
+    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(43);
+      main.toBe(49);
+      horizon.toBe(57);
+    });
+
+    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(127);
+      main.toBe(129);
+      horizon.toBe(137);
+    });
   });
 
   it('should be possible to disable plugin using updateSettings', () => {
@@ -283,8 +312,16 @@ describe('AutoRowSize', () => {
 
     keyDownUp('enter');
 
-    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(90);
-    expect(getMaster().find('.wtHolder').scrollTop()).toBe(90);
+    expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(216);
+      horizon.toBe(264);
+    });
+    expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(216);
+      horizon.toBe(264);
+    });
   });
 
   it('should consider CSS style of each instance separately', () => {
@@ -354,7 +391,11 @@ describe('AutoRowSize', () => {
 
     setDataAtCell(0, 0, 'LongLongLongLong');
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(69); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(69); // -1px of cell border
+      main.toBe(70);
+      horizon.toBe(70);
+    });
   });
 
   // Currently columns.height is not supported
@@ -400,7 +441,11 @@ describe('AutoRowSize', () => {
       }
     });
 
-    expect(parseInt(hot.getCell(1, 0).style.height || 0, 10)).toBe(242);
+    expect(parseInt(hot.getCell(1, 0).style.height || 0, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(242);
+      main.toBe(241);
+      horizon.toBe(241);
+    });
   });
 
   it('should destroy temporary element', () => {
@@ -421,27 +466,75 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22); // -1px of cell border
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22); // -1px of cell border
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22); // -1px of cell border
+      main.toBe(29);
+      horizon.toBe(37);
+    });
 
     resizeColumn.call(this, 1, 90);
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(63);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(42);
+      main.toBe(49);
+      horizon.toBe(57);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(63);
+      main.toBe(89);
+      horizon.toBe(97);
+    });
 
     resizeColumn.call(this, 1, 50);
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(126);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(42);
+      main.toBe(49);
+      horizon.toBe(57);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(126);
+      main.toBe(129);
+      horizon.toBe(137);
+    });
 
     resizeColumn.call(this, 1, 200);
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(22);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(49);
+      horizon.toBe(57);
+    });
   });
 
   it('should recalculate heights after column moved', () => {
@@ -456,16 +549,40 @@ describe('AutoRowSize', () => {
 
     const plugin = hot.getPlugin('manualColumnMove');
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(42); // -1px of cell border
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(105); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(42); // -1px of cell border
+      main.toBe(49);
+      horizon.toBe(57);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(105); // -1px of cell border
+      main.toBe(109);
+      horizon.toBe(117);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeInArray([22, 42]); // -1px of cell border
+      main.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
+    });
 
     plugin.moveColumn(0, 1);
     hot.render();
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(126);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(42);
+      main.toBe(49);
+      horizon.toBe(57);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(126);
+      main.toBe(129);
+      horizon.toBe(137);
+    });
   });
 
   it('should recalculate heights with manualRowResize when changing text to multiline', () => {
@@ -478,15 +595,39 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(49); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22); // -1px of cell border
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(49); // -1px of cell border
+      main.toBe(50);
+      horizon.toBe(50);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeInArray([22, 42]); // -1px of cell border
+      main.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
+    });
 
     hot.setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(105);
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(105);
+      main.toBe(109);
+      horizon.toBe(117);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeInArray([22, 42]);
+      main.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
+    });
   });
 
   it('should recalculate heights after moved row', () => {
@@ -500,23 +641,47 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(49); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22); // -1px of cell border
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(49); // -1px of cell border
+      main.toBe(50);
+      horizon.toBe(50);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeInArray([22, 42]); // -1px of cell border
+      main.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
+    });
 
     const plugin = hot.getPlugin('manualRowMove');
 
     plugin.moveRow(1, 0);
     hot.render();
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(49);
-    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22);
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(49);
+      main.toBe(50);
+      horizon.toBe(50);
+    });
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(22);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeInArray([22, 42]); // -1px of cell border
+      main.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
+    });
   });
 
   it('should resize the column headers properly, according the their content sizes', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(30, 30),
+      data: createSpreadsheetData(30, 30),
       colHeaders(index) {
         if (index === 22) {
           return 'a<br>much<br>longer<br>label';
@@ -530,7 +695,11 @@ describe('AutoRowSize', () => {
       height: 300
     });
 
-    expect(rowHeight(spec().$container, -1)).toBeAroundValue(65);
+    expect(rowHeight(spec().$container, -1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeAroundValue(65);
+      main.toBeAroundValue(88);
+      horizon.toBeAroundValue(96);
+    });
   });
 
   it('should properly count height', async() => {
@@ -545,7 +714,11 @@ describe('AutoRowSize', () => {
 
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 
-    expect(cloneLeft.height()).toEqual(70);
+    expect(cloneLeft.height()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual(70);
+      main.toEqual(79);
+      horizon.toEqual(95);
+    });
   });
 
   it('should not calculate any row heights, if there are no rows in the dataset', () => {
@@ -579,9 +752,21 @@ describe('AutoRowSize', () => {
     hidingMap.setValueAtIndex(2, true);
     render();
 
-    expect(getRowHeight(0)).toBe(23);
-    expect(getRowHeight(1)).toBe(23);
-    expect(getRowHeight(2)).toBe(23);
+    expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(23);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(23);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(23);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
   });
 
   it('should correctly apply the column widths to the measured row when the first column is hidden (#dev-569)', () => {
@@ -603,14 +788,18 @@ describe('AutoRowSize', () => {
     hidingMap.setValueAtIndex(0, true);
     render();
 
-    expect(getRowHeight(0)).toBe(23);
+    expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(23);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
   });
 
   it('should not throw error while traversing header\'s DOM elements', () => {
     const onErrorSpy = spyOn(window, 'onerror');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       autoRowSize: true,
       afterGetColHeader(column, TH) {
@@ -635,12 +824,86 @@ describe('AutoRowSize', () => {
 
     scrollViewportTo(49, 0);
 
-    expect(topOverlay().getScrollPosition()).toBe(833);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(833);
+      main.toBe(1135);
+      horizon.toBe(1543);
+    });
 
     selectColumns(2, 2);
     listen();
     keyDownUp('delete');
 
-    expect(topOverlay().getScrollPosition()).toBe(833);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(833);
+      main.toBe(1135);
+      horizon.toBe(1543);
+    });
+  });
+
+  it('should correctly calculate row heights for cell\'s content that produce ' +
+     'heights with fractions (#dev-1926)', () => {
+    const css = '.handsontable .htCheckboxRendererLabel { height: 24.5px !important }'; // creates cell height with
+    // fraction
+    const head = document.head;
+    const style = document.createElement('style');
+
+    style.type = 'text/css';
+
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+
+    $(head).append(style);
+
+    handsontable({
+      data: createSpreadsheetObjectData(20, 1).map((row) => {
+        row.prop0 = false;
+
+        return row;
+      }),
+      autoRowSize: true,
+      rowHeaders: true,
+      colHeaders: true,
+      columns: [
+        {
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'prop0',
+          }
+        }
+      ],
+    });
+
+    expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(34);
+      horizon.toBe(42);
+    });
+    expect(getRowHeight(4)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(34);
+      horizon.toBe(42);
+    });
+    expect(getRowHeight(9)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(34);
+      horizon.toBe(42);
+    });
+    expect(getRowHeight(14)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(34);
+      horizon.toBe(42);
+    });
+    expect(getRowHeight(19)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(34);
+      horizon.toBe(42);
+    });
+
+    $(style).remove();
   });
 });

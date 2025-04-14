@@ -84,7 +84,7 @@ To properly use the internationalization feature, you need to load the language 
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
-  import { HotTable } from '@handsontable/react';
+  import { HotTable } from '@handsontable/react-wrapper';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
   registerLanguageDictionary(deDE);
@@ -146,12 +146,6 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for react
 
-::: tip
-
-Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
-
-:::
-
 ::: example #example2 :react-languages
 
 @[code](@/content/guides/internationalization/language/react/example2.jsx)
@@ -185,6 +179,7 @@ By default, Handsontable uses the **English - United States** language-country s
 - `de-CH.js` for **German - Switzerland** (`de-CH` code).
 - `de-DE.js` for **German - Germany** (`de-DE` code).
 - `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
+- `fa-IR.js` for **Persian - Iran** (`fa-IR` code).
 - `fr-FR.js` for **French - France** (`fr-FR` code).
 - `hr-HR.js` for **Croatian - Croatia** (`hr-HR` code).
 - `it-IT.js` for **Italian - Italy** (`it-IT` code).

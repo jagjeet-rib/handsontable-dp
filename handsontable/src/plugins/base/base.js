@@ -1,4 +1,4 @@
-import { defineGetter, objectEach } from '../../helpers/object';
+import { defineGetter, objectEach, isObject } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
@@ -15,6 +15,7 @@ const DEPS_TYPE_CHECKERS = new Map([
   ['validator', hasValidator],
 ]);
 
+export const defaultMainSettingSymbol = Symbol('mainSetting');
 export const PLUGIN_KEY = 'base';
 const missingDepsMsgs = [];
 let initializedPlugins = null;
@@ -41,6 +42,15 @@ export class BasePlugin {
     return [
       this.PLUGIN_KEY
     ];
+  }
+
+  /**
+   * The `DEFAULT_SETTINGS` getter defines the plugin default settings.
+   *
+   * @returns {object}
+   */
+  static get DEFAULT_SETTINGS() {
+    return {};
   }
 
   /**
@@ -129,13 +139,6 @@ export class BasePlugin {
       initializedPlugins = getPluginsNames();
     }
 
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    // Without this line the `callOnPluginsReady` callback won't be triggered after all plugin
-    // initialization.
-    if (initializedPlugins.indexOf('UndoRedo') >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf('UndoRedo'), 1);
-    }
-
     if (initializedPlugins.indexOf(this.pluginName) >= 0) {
       initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
     }
@@ -154,6 +157,8 @@ export class BasePlugin {
           `${missingDepsMsgs.join('\n')}\n`,
           'You have to import and register them manually.',
         ].join('');
+
+        missingDepsMsgs.length = 0;
 
         throw new Error(errorMsg);
       }
@@ -178,6 +183,41 @@ export class BasePlugin {
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
+  }
+
+  /**
+   * Gets the plugin settings. If there is no setting under the provided key, it returns the default setting
+   * provided by the DEFAULT_SETTINGS static property of the class.
+   *
+   * @param {string} [settingName] The setting name. If the setting name is not provided, it returns
+   * the whole plugin's settings object.
+   * @returns {*}
+   */
+  getSetting(settingName) {
+    const pluginSettings = this.hot.getSettings()[this.constructor.PLUGIN_KEY];
+
+    if (settingName === undefined) {
+      return pluginSettings;
+    }
+
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+
+    if (
+      (Array.isArray(pluginSettings) || isObject(pluginSettings)) &&
+      defaultSettings[defaultMainSettingSymbol] === settingName
+    ) {
+      if (Array.isArray(pluginSettings)) {
+        return pluginSettings;
+      }
+
+      return pluginSettings[settingName] ?? defaultSettings[settingName];
+    }
+
+    if (isObject(pluginSettings)) {
+      return pluginSettings[settingName] ?? defaultSettings[settingName];
+    }
+
+    return defaultSettings[settingName];
   }
 
   /**

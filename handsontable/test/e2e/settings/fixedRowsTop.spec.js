@@ -215,18 +215,50 @@ describe('settings', () => {
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
-      expect(getTopClone().height()).toBe(50);
-      expect(getTopInlineStartClone().height()).toBe(50);
-      expect(getInlineStartClone().height()).toBe(50);
+      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(50); // 25px corner + 25px added row
+        main.toBe(59);
+        horizon.toBe(75);
+      });
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(50);
+        main.toBe(59);
+        horizon.toBe(75);
+      });
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(50);
+        main.toBe(59);
+        horizon.toBe(75);
+      });
+      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(50);
+        main.toBe(59);
+        horizon.toBe(75);
+      });
       expect(getBottomClone().height()).toBe(0);
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).toBe(73);
-      expect(getTopClone().height()).toBe(73);
-      expect(getTopInlineStartClone().height()).toBe(73);
-      expect(getInlineStartClone().height()).toBe(73);
+      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(73);
+        main.toBe(88);
+        horizon.toBe(112);
+      });
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(73);
+        main.toBe(88);
+        horizon.toBe(112);
+      });
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(73);
+        main.toBe(88);
+        horizon.toBe(112);
+      });
+      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(73);
+        main.toBe(88);
+        horizon.toBe(112);
+      });
       expect(getBottomClone().height()).toBe(0);
     });
   });

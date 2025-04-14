@@ -118,8 +118,8 @@ class DataMap {
     this.metaManager = metaManager;
     this.tableMeta = metaManager.getTableMeta();
     this.dataSource = data;
-    this.duckSchema = this.createDuckSchema();
 
+    this.refreshDuckSchema();
     this.createMap();
   }
 
@@ -540,14 +540,13 @@ class DataMap {
 
     this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
-    // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.hot.countRows()) {
       this.hot.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
 
-      const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
+      const preserveColumns = isDefined(this.tableMeta.columns) ||
+        isDefined(this.tableMeta.dataSchema) || this.tableMeta.colHeaders;
 
-      // All rows have been removed. There shouldn't be any columns.
-      if (this.hot.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
+      if (this.hot.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && !preserveColumns) {
         this.hot.columnIndexMapper.setIndexesSequence([]);
       }
     }
@@ -622,12 +621,10 @@ class DataMap {
       }
     }
 
-    // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.hot.countCols()) {
       this.hot.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
 
-      // All columns have been removed. There shouldn't be any rows.
-      if (this.hot.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
+      if (!this.tableMeta.rowHeaders && this.hot.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
         this.hot.rowIndexMapper.setIndexesSequence([]);
       }
     }
@@ -850,6 +847,11 @@ class DataMap {
       const sliced = prop.split('.');
 
       for (i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+        if (sliced[i] === '__proto__' || sliced[i] === 'constructor' || sliced[i] === 'prototype') {
+          // Security: prototype-polluting is not allowed
+          return;
+        }
+
         if (typeof out[sliced[i]] === 'undefined') {
           out[sliced[i]] = {};
         }
@@ -857,11 +859,15 @@ class DataMap {
       }
 
       out[sliced[i]] = newValue;
-
     } else if (typeof prop === 'function') {
       prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
 
     } else {
+      if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') {
+        // Security: prototype-polluting is not allowed
+        return;
+      }
+
       dataRow[prop] = newValue;
     }
   }
